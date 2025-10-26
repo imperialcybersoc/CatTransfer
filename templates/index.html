@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+<form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
+    <div class="upload-box" onclick="document.getElementById('fileInput').click()">
+        <h2>Select or drop files</h2>
+    </div>
+    <input type="file" id="fileInput" name="file" onchange="this.form.submit()">
+</form>
+
+{% if uploaded_files %}
+<div class="file-list">
+    <h3>📂 Uploaded Files:</h3>
+    {% for filename in uploaded_files %}
+    <div class="file-item">
+        <span>{{ filename }}</span>
+        <a href="{{ url_for('view_file', file='uploads/' + filename) }}" class="file-link" target="_blank">
+            {{ url_for('view_file', file='uploads/' + filename, _external=True) }}
+        </a>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="info-box">
+    <h3>📂 No files uploaded yet</h3>
+    <p>Upload your first file to get started!</p>
+</div>
+{% endif %}
+
+{% endblock %}

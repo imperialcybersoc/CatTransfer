@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CatTransfer /ᐠ˵- ⩊ -˵マ  - File Upload{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">
+                <h1>CatTransfer /ᐠ˵- ⩊ -˵マ</h1>
+            </div>
+            <p class="subtitle">Uploads up to 6.7 MB are allowed. Your files are stored securely (???)</p>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert {{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+        <br>
+        <div class="promo-box">
+            <p>Check out <a href="https://www.iccybersoc.org/">ICCYBERSOC</a> - Dope ass society ‼️</p>
+        </div>
+        
+        <footer>
+            <p>≽^•⩊•^≼</p>
+        </footer>
+    </div>
+</body>
+</html>

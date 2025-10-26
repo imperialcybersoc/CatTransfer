@@ -1,0 +1,1 @@
+File upload service - Maximum 6.7MB per file.
