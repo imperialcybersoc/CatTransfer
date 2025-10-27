@@ -1,8 +1,32 @@
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 import os
+import sys
 from werkzeug.utils import secure_filename
+import logging
+from logging.handlers import RotatingFileHandler
+
+LOG_DIR = os.environ.get("LOG_DIR")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "super_duper_secret_dev_log.txt")
+
+sys.stdout = open(LOG_FILE, "a")
+sys.stderr = open(LOG_FILE, "a")
+
+formatter = logging.Formatter(
+    "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
+)
+
+handler = RotatingFileHandler(LOG_FILE, maxBytes=10 * 1024 * 1024, backupCount=5)
+handler.setFormatter(formatter)
+handler.setLevel(logging.DEBUG)
+
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+root_logger.addHandler(handler)
+
 
 app = Flask(__name__)
+app.debug = True
 app.secret_key = "very_very_secret_key"
 app.config["UPLOAD_FOLDER"] = "uploads"
 app.config["MAX_CONTENT_LENGTH"] = 6.7 * 1024 * 1024  # 6.7 MB
@@ -69,30 +93,27 @@ def view_file():
     is_image = is_binary = False
     
     if file_path:
-        try:
-            file_ext = os.path.splitext(file_path)[1].lower()
-            
-            if file_ext in IMG_EXTENSIONS:
-                is_image = True
-            else:
-                try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        file_content = f.read()
-                except UnicodeDecodeError:
-                    is_binary = True
-                    with open(file_path, "rb") as f:
-                        file_content = f.read()
+        file_ext = os.path.splitext(file_path)[1].lower()
+        
+        if file_ext in IMG_EXTENSIONS:
+            is_image = True
+        else:
+            try:
+                with open(file_path, "r", encoding="utf-8") as f:
+                    file_content = f.read()
+            except UnicodeDecodeError:
+                is_binary = True
+                with open(file_path, "rb") as f:
+                    file_content = f.read()
 
-                        hex_lines = []
-                        for i in range(0, min(len(file_content), 512), 16):
-                            hex_part = " ".join(f"{b:02x}" for b in file_content[i:i+16])
-                            ascii_part = "".join(chr(b) if 32 <= b < 127 else "." for b in file_content[i:i+16])
-                            hex_lines.append(f"{i:08x}  {hex_part:<48}  {ascii_part}")
-                        file_content = "\n".join(hex_lines)
-                        if len(file_content) >= 512:
-                            file_content += "\n\n... (showing first 512 bytes)"
-        except Exception as e:
-            error = f"Error reading file: {str(e)}"
+                    hex_lines = []
+                    for i in range(0, min(len(file_content), 512), 16):
+                        hex_part = " ".join(f"{b:02x}" for b in file_content[i:i+16])
+                        ascii_part = "".join(chr(b) if 32 <= b < 127 else "." for b in file_content[i:i+16])
+                        hex_lines.append(f"{i:08x}  {hex_part:<48}  {ascii_part}")
+                    file_content = "\n".join(hex_lines)
+                    if len(file_content) >= 512:
+                        file_content += "\n\n... (showing first 512 bytes)"
     
     uploaded_files = get_uploaded_files()
     return render_template("view.html", 
